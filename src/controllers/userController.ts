@@ -103,3 +103,12 @@ export const deleteUser = async (request: Request, response: Response) => {
 		else return response.json({ error });
 	}
 };
+
+export default {
+	createUser,
+	getAllUsers,
+	getUserById,
+	getUserByEmail,
+	updateUser,
+	deleteUser,
+};

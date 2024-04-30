@@ -1,18 +1,12 @@
 import express, { Express, Request, Response, NextFunction } from "express";
-import logEvents from "./middleware/logEvents";
-import errorhandler from "./middleware/errorHandler";
+import logEvents from "./src/middleware/logEvents";
+import errorhandler from "./src/middleware/errorHandler";
+import userRouter from "./src/routes/api/user";
 import path from "path";
 import cors from "cors";
-import {
-	createUser,
-	deleteUser,
-	getAllUsers,
-	getUserByEmail,
-	getUserById,
-	updateUser,
-} from "./controllers/userController";
-import handleLogin from "./controllers/authController";
-import { verifyJWT } from "./middleware/verifyJWT";
+import { createUser } from "./src/controllers/userController";
+import handleLogin from "./src/controllers/authController";
+import { verifyJWT } from "./src/middleware/verifyJWT";
 
 const app: Express = express();
 const PORT = process.env.PORT || 3500;
@@ -44,7 +38,7 @@ app.use(express.json());
 
 app.post("/register", createUser);
 app.route("/login").post(handleLogin);
-app.get("/users", getAllUsers);
+app.use("/users", userRouter);
 
 app.use((_err: Error, req: Request, res: Response, next: NextFunction) => {
 	errorhandler;
