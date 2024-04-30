@@ -11,6 +11,8 @@ import {
 	getUserById,
 	updateUser,
 } from "./controllers/userController";
+import handleLogin from "./controllers/authController";
+import { verifyJWT } from "./middleware/verifyJWT";
 
 const app: Express = express();
 const PORT = process.env.PORT || 3500;
@@ -41,9 +43,10 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 app.post("/register", createUser);
+app.route("/login").post(handleLogin);
 app.get("/users", getAllUsers);
 
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((_err: Error, req: Request, res: Response, next: NextFunction) => {
 	errorhandler;
 });
 
