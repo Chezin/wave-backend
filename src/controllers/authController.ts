@@ -44,7 +44,7 @@ export const handleRegister = async (request: Request, response: Response) => {
 			{ expiresIn: "1d" }
 		);
 
-		return response.status(201).json({ accessToken, refreshToken, user });
+		return response.status(201).json({ accessToken, user });
 	} catch (error) {
 		console.log(error);
 	}
@@ -57,7 +57,7 @@ export const handleLogin = async (request: Request, response: Response) => {
 		if (!email || !password) {
 			return response
 				.sendStatus(400)
-				.json({ message: "Username and password are requestuired" });
+				.json({ message: "Username and password are required" });
 		}
 
 		const foundUser = await prisma.user.findUnique({
@@ -99,3 +99,5 @@ export const handleLogin = async (request: Request, response: Response) => {
 		console.log(error);
 	}
 };
+
+export default { handleRegister, handleLogin };

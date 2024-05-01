@@ -1,11 +1,10 @@
 import express, { Express, Request, Response, NextFunction } from "express";
 import logEvents from "./src/middleware/logEvents";
 import errorhandler from "./src/middleware/errorHandler";
-import userRouter from "./src/routes/api/user";
+import userRouter from "./src/routes/api/v1/user";
 import cors from "cors";
 import corsOptions from "./src/utils/cors";
-import { verifyJWT } from "./src/middleware/verifyJWT";
-import { handleLogin, handleRegister } from "./src/controllers/authController";
+import authRouter from "./src/routes/api/v1/auth";
 
 const app: Express = express();
 const PORT = process.env.PORT || 3500;
@@ -19,10 +18,8 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-app.post("/register", handleRegister);
-app.use(verifyJWT);
-app.route("/login").post(handleLogin);
 app.use("/users", userRouter);
+app.use("/auth", authRouter);
 
 app.use((_err: Error, req: Request, res: Response, next: NextFunction) => {
 	errorhandler;
