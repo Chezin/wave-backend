@@ -1,35 +1,25 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-type JWTResultToken = {
-	id: string;
-	username: string;
-};
+export const verifyJWT = (
+	request: Request,
+	response: Response,
+	next: NextFunction
+) => {
+	try {
+		const token = request.headers.authorization?.split(" ")[1];
 
-function verifyDecodedToken(data: unknown): asserts data is JWTResultToken {
-	if (!(data instanceof Object))
-		throw new Error("Decoded token error. Token must be an object");
-	if (!("id" in data))
-		throw new Error('Decoded token error. Missing required field "id"');
-}
+		if (!token)
+			return response.sendStatus(401).json({ message: "Token is empty" });
 
-export const verifyJWT = (req: Request, res: Response, next: NextFunction) => {
-	const authHeader = req.headers["authorization"];
-	console.log(authHeader);
-	if (!authHeader) return res.sendStatus(401);
-	const token = authHeader.split(" ")[1];
-	if (process.env.ACCESS_TOKEN_SECRET) {
-		const decodedToken: unknown = jwt.verify(
-			token,
-			process.env.ACCESS_TOKEN_SECRET
-		);
+		jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!);
 
-		verifyDecodedToken(decodedToken);
-
-		console.log(req, "caí aqui");
 		next();
+	} catch (error) {
+		console.log(error);
+		return response.status(401);
 	}
 };

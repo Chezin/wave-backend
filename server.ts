@@ -1,29 +1,23 @@
-import express, { Express, Request, Response, NextFunction } from "express";
-import logEvents from "./src/middleware/logEvents";
-import errorhandler from "./src/middleware/errorHandler";
-import userRouter from "./src/routes/api/v1/user";
+import express, { Express } from "express";
+import { logger } from "./src/middleware/logEvents";
 import cors from "cors";
 import corsOptions from "./src/utils/cors";
+import userRouter from "./src/routes/api/v1/user";
 import authRouter from "./src/routes/api/v1/auth";
+import { verifyJWT } from "./src/middleware/verifyJWT";
+import userController from "./src/controllers/userController";
 
 const app: Express = express();
 const PORT = process.env.PORT || 3500;
 
-app.use((req: Request, _res: Response, next: NextFunction) => {
-	logEvents(`${req.method}\t${req.headers}\t${req.url}`, "requestLog.txt");
-	console.log(`${req.method}`);
-	next();
-});
+app.use(logger);
 
 app.use(cors(corsOptions));
 app.use(express.json());
 
-app.use("/users", userRouter);
+app.route("/users/me").get(verifyJWT, userController.getUserFromAccessTokenId);
 app.use("/auth", authRouter);
-
-app.use((_err: Error, req: Request, res: Response, next: NextFunction) => {
-	errorhandler;
-});
+//app.use("/users", userRouter);
 
 app.listen(PORT, () => {
 	console.log(`Server is running on port ${PORT}`);

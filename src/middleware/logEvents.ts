@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid";
-import { NextFunction } from "express";
+import { Request, Response, NextFunction } from "express";
 import fs from "fs";
 import path from "path";
 
@@ -25,4 +25,7 @@ const logEvents = async (message: string, logName: string) => {
 	}
 };
 
-export default logEvents;
+export const logger = (req: Request, _res: Response, next: NextFunction) => {
+	logEvents(`${req.method}\t${req.url}\t${req.rawHeaders}`, "requestLog.txt");
+	next();
+};

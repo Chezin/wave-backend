@@ -6,9 +6,28 @@ import jwt from "jsonwebtoken";
 
 dotenv.config({ path: __dirname + "/.env" });
 
+type TokenType = "ACCESS" | "REFRESH";
+
+const ACCESS = "ACCESS";
+const REFRESH = "REFRESH";
+const ACCESS_TOKEN_EXPIRATION = "1d";
+const REFRESH_TOKEN_EXPIRATION = "1d";
+
+const createToken = (email: string, expiration: string, type: TokenType) => {
+	let secret: string | undefined;
+	if (type === "ACCESS") secret = process.env.ACCESS_TOKEN_SECRET;
+	else secret = process.env.REFRESH_TOKEN_SECRET;
+
+	const token = jwt.sign({ username: email }, secret!, {
+		expiresIn: expiration,
+	});
+	return token;
+};
+
 export const handleRegister = async (request: Request, response: Response) => {
 	try {
-		const { email, name, password } = request.body;
+		const { email, firstName, lastName, phoneNumber, password } =
+			request.body;
 
 		if (!email || !password) {
 			return response
@@ -19,6 +38,7 @@ export const handleRegister = async (request: Request, response: Response) => {
 		const foundUser = await prisma.user.findUnique({
 			where: { email: email },
 		});
+
 		if (foundUser)
 			return response
 				.sendStatus(401)
@@ -28,23 +48,25 @@ export const handleRegister = async (request: Request, response: Response) => {
 		const user = await prisma.user.create({
 			data: {
 				email,
-				name,
+				firstName,
+				lastName,
+				phoneNumber,
 				password: hashedPassword,
 			},
 		});
 
-		const accessToken = jwt.sign(
-			{ username: user.email },
-			process.env.ACCESS_TOKEN_SECRET!,
-			{ expiresIn: "15s" }
+		const accessToken = createToken(
+			user.id,
+			ACCESS_TOKEN_EXPIRATION,
+			ACCESS
 		);
-		const refreshToken = jwt.sign(
-			{ username: user.email },
-			process.env.REFRESH_TOKEN_SECRET!,
-			{ expiresIn: "1d" }
+		const refreshToken = createToken(
+			user.id,
+			REFRESH_TOKEN_EXPIRATION,
+			REFRESH
 		);
 
-		return response.status(201).json({ accessToken, user });
+		return response.status(201).json({ accessToken, refreshToken, user });
 	} catch (error) {
 		console.log(error);
 	}
@@ -63,6 +85,8 @@ export const handleLogin = async (request: Request, response: Response) => {
 		const foundUser = await prisma.user.findUnique({
 			where: { email: email },
 		});
+
+		console.log("found user", foundUser);
 		if (!foundUser || !foundUser.password || !foundUser.email)
 			return response
 				.sendStatus(401)
@@ -73,23 +97,19 @@ export const handleLogin = async (request: Request, response: Response) => {
 			foundUser.password
 		);
 		if (passwordMatches) {
-			const accessToken = jwt.sign(
-				{ username: foundUser.email },
-				process.env.ACCESS_TOKEN_SECRET!,
-				{ expiresIn: "15s" }
+			const accessToken = createToken(
+				email,
+				ACCESS_TOKEN_EXPIRATION,
+				ACCESS
 			);
-			const refreshToken = jwt.sign(
-				{ username: foundUser.email },
-				process.env.REFRESH_TOKEN_SECRET!,
-				{ expiresIn: "1d" }
+			const refreshToken = createToken(
+				email,
+				REFRESH_TOKEN_EXPIRATION,
+				REFRESH
 			);
 
-			// response.cookie("jwt", refresponsehToken, {
-			// 	httpOnly: true,
-			// 	maxAge: 24 * 60 * 60 * 1000,
-			// });
 			console.log(response);
-			return response.json({ accessToken, refreshToken });
+			return response.json({ refreshToken, accessToken });
 		} else {
 			return response
 				.sendStatus(401)
