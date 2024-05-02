@@ -15,9 +15,8 @@ app.use(logger);
 app.use(cors(corsOptions));
 app.use(express.json());
 
-app.route("/users/me").get(verifyJWT, userController.getUserFromAccessTokenId);
 app.use("/auth", authRouter);
-//app.use("/users", userRouter);
+app.use("/users", userRouter);
 
 app.listen(PORT, () => {
 	console.log(`Server is running on port ${PORT}`);
