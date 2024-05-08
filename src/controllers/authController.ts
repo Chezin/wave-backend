@@ -1,8 +1,8 @@
-import { Request, Response } from "express";
+import { Request, Response, response } from "express";
 import { prisma } from "../database";
 import bcrypt from "bcrypt";
 import dotenv from "dotenv";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 
 dotenv.config({ path: __dirname + "/.env" });
 
@@ -10,7 +10,7 @@ type TokenType = "ACCESS" | "REFRESH";
 
 const ACCESS = "ACCESS";
 const REFRESH = "REFRESH";
-const ACCESS_TOKEN_EXPIRATION = "1d";
+const ACCESS_TOKEN_EXPIRATION = "15s";
 const REFRESH_TOKEN_EXPIRATION = "1d";
 
 const createToken = (email: string, expiration: string, type: TokenType) => {
@@ -86,7 +86,6 @@ export const handleLogin = async (request: Request, response: Response) => {
 			where: { email: email },
 		});
 
-		console.log("found user", foundUser);
 		if (!foundUser || !foundUser.password || !foundUser.email)
 			return response
 				.sendStatus(401)
@@ -98,18 +97,18 @@ export const handleLogin = async (request: Request, response: Response) => {
 		);
 		if (passwordMatches) {
 			const accessToken = createToken(
-				email,
+				foundUser.id,
 				ACCESS_TOKEN_EXPIRATION,
 				ACCESS
 			);
 			const refreshToken = createToken(
-				email,
+				foundUser.id,
 				REFRESH_TOKEN_EXPIRATION,
 				REFRESH
 			);
 
-			console.log(response);
-			return response.json({ refreshToken, accessToken });
+			console.log("found user", foundUser);
+			return response.json({ accessToken, refreshToken, foundUser });
 		} else {
 			return response
 				.sendStatus(401)
@@ -120,4 +119,23 @@ export const handleLogin = async (request: Request, response: Response) => {
 	}
 };
 
-export default { handleRegister, handleLogin };
+const refreshAccessToken = async (request: Request, response: Response) => {
+	try {
+		const { refreshToken } = request.body;
+		const decoded = jwt.decode(refreshToken) as JwtPayload;
+		if (decoded) {
+			const accessToken = createToken(
+				decoded.id,
+				ACCESS_TOKEN_EXPIRATION,
+				ACCESS
+			);
+			return response.json({ accessToken });
+		} else {
+			return response.status(401).json({ message: "Bad refresh token" });
+		}
+	} catch (error) {
+		console.log(error);
+	}
+};
+
+export default { handleRegister, handleLogin, refreshAccessToken };

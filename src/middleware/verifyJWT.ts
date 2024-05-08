@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import jwt, { JwtPayload } from "jsonwebtoken";
+import jwt, { JwtPayload, TokenExpiredError } from "jsonwebtoken";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -20,6 +20,7 @@ export const verifyJWT = (
 		next();
 	} catch (error) {
 		console.log(error);
-		return response.status(401);
+		if (error instanceof TokenExpiredError)
+			return response.status(401).json({ message: error.message });
 	}
 };

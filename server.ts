@@ -4,8 +4,6 @@ import cors from "cors";
 import corsOptions from "./src/utils/cors";
 import userRouter from "./src/routes/api/v1/user";
 import authRouter from "./src/routes/api/v1/auth";
-import { verifyJWT } from "./src/middleware/verifyJWT";
-import userController from "./src/controllers/userController";
 
 const app: Express = express();
 const PORT = process.env.PORT || 3500;

@@ -123,12 +123,13 @@ export const getUserFromAccessTokenId = async (
 	try {
 		const token = request.headers.authorization!.split(" ")[1];
 		const decoded = jwt.decode(token) as JwtPayload;
-
+		console.log("why null", decoded.username);
 		const user = await prisma.user.findUnique({
 			where: {
 				id: decoded.username,
 			},
 		});
+		console.log("user", user);
 		return response.json(user);
 	} catch (error) {
 		if (error instanceof Error)

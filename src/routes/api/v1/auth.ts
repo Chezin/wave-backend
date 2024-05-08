@@ -4,7 +4,8 @@ import { verifyJWT } from "../../../middleware/verifyJWT";
 
 const authRouter = express.Router();
 
-authRouter.route("/register").post(authController.handleRegister);
-authRouter.route("/login").post(verifyJWT, authController.handleLogin);
+authRouter.post("/register", authController.handleRegister);
+authRouter.post("/login", authController.handleLogin);
+authRouter.post("/refresh", authController.refreshAccessToken);
 
 export default authRouter;

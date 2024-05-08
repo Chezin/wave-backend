@@ -4,6 +4,6 @@ import { verifyJWT } from "../../../middleware/verifyJWT";
 
 const userRouter = express.Router();
 
-userRouter.route("/me").get(verifyJWT, userController.getUserFromAccessTokenId);
+userRouter.get("/me", verifyJWT, userController.getUserFromAccessTokenId);
 
 export default userRouter;
