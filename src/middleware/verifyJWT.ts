@@ -13,7 +13,7 @@ export const verifyJWT = (
 		const token = request.headers.authorization?.split(" ")[1];
 
 		if (!token)
-			return response.sendStatus(401).json({ message: "Token is empty" });
+			return response.status(401).json({ message: "Token is empty" });
 
 		jwt.verify(token, process.env.ACCESS_TOKEN_SECRET!);
 

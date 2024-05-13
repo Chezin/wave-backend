@@ -1,5 +1,5 @@
 import { prisma } from "../database";
-import { Request, Response } from "express";
+import { Request, Response, request, response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import bcrypt from "bcrypt";
 
@@ -138,6 +138,29 @@ export const getUserFromAccessTokenId = async (
 	}
 };
 
+export const getPaginatedUsers = async (
+	request: Request,
+	response: Response
+) => {
+	try {
+		const skip: number = parseInt(request.query.skip as string);
+		const take: number = parseInt(request.query.take as string);
+
+		const [count, result] = await prisma.$transaction([
+			prisma.user.count(),
+			prisma.user.findMany({
+				skip: skip,
+				take: take,
+			}),
+		]);
+		return response.json({ count, result });
+	} catch (error) {
+		if (error instanceof Error)
+			return response.json({ message: error.message });
+		else return response.json({ error });
+	}
+};
+
 export default {
 	createUser,
 	getAllUsers,
@@ -146,4 +169,5 @@ export default {
 	updateUser,
 	deleteUser,
 	getUserFromAccessTokenId,
+	getPaginatedUsers,
 };
